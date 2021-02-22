@@ -88,24 +88,7 @@ def test_diff_freq():
     #ss.reorder_blts(order='baseline')
     assert np.all(ss.data_array == diff_dat), "Data values are different!"
 
-#checks whether diff_freq masks properly
-def test_diff_freq_mask():
-    obs = '1061313128_99bl_1pol_half_time'
-    testfile = os.path.join(DATA_PATH, '%s.uvfits' % obs)
-    ss = SS()
-
-    #read in test file
-    ss.read(testfile, read_data=False, diff=False, diff_freq=False)
-    ss.apply_flags(flag_choice='original')
-    assert ss.flag_array is not None
-    temp_array = np.logical_or(ss.flag_array, ss.flag_array)
-    nonzero_or = np.count_nonzero(temp_array)
-    nonzero_flags = np.count_nonzero(ss.flag_array[::2])
-    assert (nonzero_or > nonzero_flags)
-
-
 def test_apply_flags():
-
     obs = '1061313128_99bl_1pol_half_time'
     testfile = os.path.join(DATA_PATH, '%s.uvfits' % obs)
     file_type = 'uvfits'
