@@ -7,6 +7,8 @@ from pyuvdata import UVData, UVFlag
 from datetime import datetime
 
 
+@pytest.mark.filterwarnings("ignore:Reordering", "ignore:invalid value",
+                            "ignore:SS.read")
 def test_init():
 
     obs = '1061313128_99bl_1pol_half_time'
@@ -60,13 +62,18 @@ def test_no_diff_start():
 
     # Don't diff - will fail to mask data array
     ss = SS()
-    ss.read(testfile, flag_choice='original', diff=False)
+    with pytest.warns(UserWarning, match="flag_choice will be ignored"):
+        ss.read(testfile, flag_choice='original', diff=False)
+
+    with pytest.warns(UserWarning, match="diff on read defaults to False"):
+        ss.read(testfile, flag_choice='original', diff=False)
 
     ins = INS(ss)
 
     assert ss.flag_choice is None
 
 
+@pytest.mark.filterwarnings("ignore:Reordering", "ignore:SS.read")
 def test_mean_subtract():
 
     obs = '1061313128_99bl_1pol_half_time'
@@ -90,6 +97,7 @@ def test_mean_subtract():
     assert not np.all(old_dat[1:, :5] == ins.metric_ms[1:, :5]), "All elements of the ms array are still equal"
 
 
+@pytest.mark.filterwarnings("ignore:Reordering", "ignore:SS.read")
 def test_polyfit():
 
     obs = '1061313128_99bl_1pol_half_time'
@@ -121,6 +129,7 @@ def test_polyfit():
     assert np.all(ins.metric_ms.mask), "The metric_ms array was not all masked"
 
 
+@pytest.mark.filterwarnings("ignore:Reordering", "ignore:SS.read")
 def test_mask_to_flags():
     obs = '1061313128_99bl_1pol_half_time'
     testfile = os.path.join(DATA_PATH, '%s.uvfits' % obs)
@@ -193,6 +202,7 @@ def test_mask_to_flags():
     os.remove(flags_outfile)
 
 
+@pytest.mark.filterwarnings("ignore:Reordering", "ignore:SS.read", "ignore:invalid value")
 def test_write():
 
     obs = '1061313128_99bl_1pol_half_time'
@@ -297,6 +307,9 @@ def test_select():
     ins = INS(testfile)
     ins.metric_array.mask[7, :12] = True
 
+    new_ins = ins.select(times=ins.time_array[3:-3], freq_chans=np.arange(24),
+                         inplace=False)
+
     Ntimes = len(ins.time_array)
     ins.select(times=ins.time_array[3:-3], freq_chans=np.arange(24))
 
@@ -307,6 +320,9 @@ def test_select():
     # Check that the mask is propagated
     assert np.all(ins.metric_array.mask[4, :12])
     assert np.count_nonzero(ins.metric_array.mask) == 12
+
+    # Check that new_ins is a copy of ins
+    assert new_ins == ins
 
 
 def test_data_params():
@@ -343,6 +359,7 @@ def test_spectrum_type_file_init():
     ins = INS(auto_testfile, spectrum_type="auto")
 
 
+@pytest.mark.filterwarnings("ignore:Reordering", "ignore:SS.read")
 def test_spectrum_type_bl_init():
     obs = '1061313128_99bl_1pol_half_time'
     testfile = os.path.join(DATA_PATH, f'{obs}.uvfits')
@@ -364,6 +381,7 @@ def test_spectrum_type_bad_input():
         ins = INS(testfile, spectrum_type="foo")
 
 
+@pytest.mark.filterwarnings("ignore:Reordering", "ignore:SS.read")
 def test_no_cross_auto_spectrum():
     obs = "1061312640_autos"
     testfile = os.path.join(DATA_PATH, f'{obs}.uvfits')
@@ -375,6 +393,7 @@ def test_no_cross_auto_spectrum():
         ins = INS(ss)
 
 
+@pytest.mark.filterwarnings("ignore:Reordering", "ignore:SS.read")
 def test_mix_spectrum():
     obs = "1061312640_mix"
     testfile = os.path.join(DATA_PATH, f'{obs}.uvfits')
@@ -394,6 +413,7 @@ def test_mix_spectrum():
         ins = INS(ss, spectrum_type="auto")
 
 
+@pytest.mark.filterwarnings("ignore:Reordering", "ignore:SS.read", "ignore:invalid value")
 def test_use_integration_weights():
 
     obs = '1061313128_99bl_1pol_half_time'

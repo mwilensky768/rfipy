@@ -9,14 +9,17 @@ from pyuvdata import UVData
 Tests the various capabilities of the sky_subtract class
 """
 
+
+@pytest.mark.filterwarnings("ignore:Reordering", "ignore:SS.read")
 def test_SS_read():
     obs = '1061313128_99bl_1pol_half_time'
     testfile = os.path.join(DATA_PATH, '%s.uvfits' % obs)
 
     ss = SS()
 
-    # Test reading in only metadata skips if block
-    ss.read(testfile, read_data=False)
+    # Test reading in only metadata skips if block and warning
+    with pytest.warns(PendingDeprecationWarning, match="SS.read will be renamed"):
+        ss.read(testfile, read_data=False)
     assert ss.data_array is None, "Data array is not None"
 
     # See that it is not yet flagged as diffed
@@ -106,6 +109,9 @@ def test_diff_freq():
     uv.read(testfile, times=times, bls=bls)
     uv.reorder_blts(order='baseline')
 
+@pytest.mark.filterwarnings("ignore:SS.read", "ignore:Reordering")
+def test_apply_flags():
+
     diff_dat = np.diff(uv.data_array, axis=2)
 
     with pytest.warns(UserWarning, match="Reordering data array to baseline order to perform differencing."):
@@ -130,7 +136,7 @@ def test_apply_flags():
     # Apply flags, test equality, test attribute change
     ss.apply_flags(flag_choice='original')
     assert np.all(ss.flag_array == ss.data_array.mask), "Flag arrays are not equal"
-    assert ss.flag_choice is 'original', "Flag choice attribute was not changed"
+    assert ss.flag_choice == 'original', "Flag choice attribute was not changed"
 
     # Revert flags back, test equality, test attribute change
     ss.apply_flags(flag_choice=None)
@@ -141,7 +147,7 @@ def test_apply_flags():
     custom = np.ones_like(ss.flag_array)
     ss.apply_flags(flag_choice='custom', custom=custom)
     assert np.all(ss.data_array.mask), "The custom flag array was not applied"
-    assert ss.flag_choice is 'custom', "The flag choice attribute was not changed"
+    assert ss.flag_choice == 'custom', "The flag choice attribute was not changed"
 
     # Read an INS in (no flags by default) and flag a channel for two times stuff, see if applied correctly
     ins = INS(insfile)
@@ -150,7 +156,7 @@ def test_apply_flags():
     assert np.all(ss.data_array.mask[2::ss.Ntimes, :, 1, :]), "The 2nd time was not flagged."
     assert np.all(ss.data_array.mask[4::ss.Ntimes, :, 1, :]), "The 4th time was not flagged."
     assert not np.any(ss.data_array.mask[:, :, [0] + list(range(2, ss.Nfreqs)), :]), "Channels were flagged that should not have been."
-    assert ss.flag_choice is 'INS'
+    assert ss.flag_choice == 'INS'
 
     # Make a bad time array to test an error
     ins.time_array = ins.time_array + 1
@@ -167,6 +173,8 @@ def test_apply_flags():
         ss.apply_flags(flag_choice='bad_choice')
 
 
+@pytest.mark.filterwarnings("ignore:SS.read", "ignore:Reordering",
+                            "ignore:diff on read")
 def test_mixture_prob():
 
     obs = '1061313128_99bl_1pol_half_time'
@@ -192,6 +200,8 @@ def test_mixture_prob():
     assert ss.flag_choice is None
 
 
+@pytest.mark.filterwarnings("ignore:SS.read", "ignore:Reordering",
+                            "ignore:diff on read")
 def test_rev_ind():
 
     obs = '1061313128_99bl_1pol_half_time'
@@ -230,6 +240,8 @@ def test_rev_ind():
     assert ss.flag_choice is None
 
 
+@pytest.mark.filterwarnings("ignore:SS.read", "ignore:Reordering",
+                            "ignore:some nsamples", "ignore:elementwise")
 def test_write():
 
     obs = '1061313128_99bl_1pol_half_time'
@@ -310,6 +322,7 @@ def test_read_multifiles():
         os.remove(path)
 
 
+@pytest.mark.filterwarnings("ignore:SS.read", "ignore:diff on read")
 def test_newmask():
 
     obs = '1061313128_99bl_1pol_half_time'
