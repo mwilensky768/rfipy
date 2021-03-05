@@ -17,9 +17,7 @@ def test_SS_read():
 
     ss = SS()
 
-    # Test reading in only metadata skips if block and warning
-    with pytest.warns(PendingDeprecationWarning, match="SS.read will be renamed"):
-        ss.read(testfile, read_data=False)
+    ss.read(testfile, read_data=False)
     assert ss.data_array is None, "Data array is not None"
 
     # See that it is not yet flagged as diffed
@@ -109,9 +107,6 @@ def test_diff_freq():
     uv.read(testfile, times=times, bls=bls)
     uv.reorder_blts(order='baseline')
 
-@pytest.mark.filterwarnings("ignore:SS.read", "ignore:Reordering")
-def test_apply_flags():
-
     diff_dat = np.diff(uv.data_array, axis=2)
 
     with pytest.warns(UserWarning, match="Reordering data array to baseline order to perform differencing."):
@@ -120,7 +115,7 @@ def test_apply_flags():
     #ss.reorder_blts(order='baseline')
     assert np.all(ss.data_array == diff_dat), "Data values are different!"
 
-
+@pytest.mark.filterwarnings("ignore:SS.read", "ignore:Reordering")
 def test_apply_flags():
     obs = '1061313128_99bl_1pol_half_time'
     testfile = os.path.join(DATA_PATH, '%s.uvfits' % obs)
