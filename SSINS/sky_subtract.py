@@ -161,7 +161,7 @@ class SS(UVData):
             blt_slice = slice(ind_acc, ind_acc + len_diff)
 
             self.data_array[blt_slice, :, :, :] = diff_dat
-            """The time-differenced visibilities. Complex array of shape (Nblts, Nspws, Nfreqs, Npols)."""
+            """The differenced visibilities. Complex array of shape (Nblts, Nspws, Nfreqs, Npols). Can be differenced in both time and frequency."""
             self.flag_array[blt_slice, :, :, :] = diff_flags
             """The flag array, which results from boolean OR of the flags corresponding to visibilities that are differenced from one another."""
 
